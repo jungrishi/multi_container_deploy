@@ -1,0 +1,23 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t rishi/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run --CI=true rishi/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t rishi377/multi-client ./client
+  - docker build -t rishi377/multi-nginx ./nginx
+  - docker build -t rishi377/multi-server ./server
+  - docker build -t rishi377/multi-worker ./worker
+  #log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push to docker hub
+  - docker push rishi377/multi-client
+  - docker push rishi377/multi-nginx
+  - docker push rishi377/multi-server
+  - docker push rishi377/multi-worker
